@@ -5,14 +5,12 @@
     <title>add a password</title>
 </head>
 <body>
-    <form>
+    <form action="/add_pwd" method="post">
         <label for="soft">enter the software:</label>
-        <input type="text" id="soft" name="software"><br><br>
+        <input type="text" id="soft" name="soft"><br><br>
         <label for="pwd">enter password:</label>
-        <input type="password" id="pwd" name="password"><br><br>
-        <button>
-            <a href="/add_pwd">Add pwd</a>
-        </button>
+        <input type="password" id="pwd" name="pwd"><br><br>
+        <input type="submit" value="Submit">
     </form>
 </body>
 </html>

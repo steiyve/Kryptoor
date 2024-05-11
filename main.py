@@ -8,12 +8,14 @@ app = Flask(__name__, template_folder='template')
 def home():
     return render_template('index.html')
 
+@app.route("/add_pwd_form")
+def add_pwd_form():
+    return render_template('add.html')
 
 @app.route("/add_pwd", methods=["POST"])
 def add_pwd():
-    data = request.get_json()
-    soft = data.get("service")
-    pwd = data.get("pwd")
+    soft = request.form["soft"]
+    pwd = request.form["pwd"]
     content = load()
     content[soft] = pwd
     save(content)
