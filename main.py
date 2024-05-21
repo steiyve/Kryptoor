@@ -1,16 +1,19 @@
 import json
 from cryptography.fernet import Fernet
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect
 
 app = Flask(__name__, template_folder='template')
 
+
 @app.route("/")
 def home():
-    return render_template('index.html')
+    return render_template('index.html', pwd="not found")
+
 
 @app.route("/add_pwd_form")
 def add_pwd_form():
     return render_template('add.html')
+
 
 @app.route("/add_pwd", methods=["POST"])
 def add_pwd():
@@ -19,20 +22,19 @@ def add_pwd():
     content = load()
     content[soft] = pwd
     save(content)
-    return jsonify({"message": f"le mot de passe pour: {soft} a ete ajouter"})
+    return redirect("/", code=302)
 
 
-@app.route("/get_pwd/<soft>", methods=["GET"])
-def get_pwd(soft):
+@app.route("/get_pwd", methods=["GET"])
+def get_pwd():
+    soft = request.args.get('soft')
     try:
-        return jsonify({"pwd": load()[soft]})
+        return render_template('index.html', pwd=load()[soft])
     except:
-        return jsonify({"message": f"le service: {soft} nexiste pas"})
+        return render_template("index.html", pwd="not found")
 
 
-@app.route("/get_all_pwd", methods=["GET"])
-def get_all_pwd():
-    return jsonify({"content": load()})
+
 
 
 def load():
