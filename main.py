@@ -1,8 +1,17 @@
 import json
 from cryptography.fernet import Fernet
 from flask import Flask, request, jsonify, render_template, redirect
-
+import models
+from database import SessionLocal, engine
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 app = Flask(__name__, template_folder='template')
+models.Base.metadata.create_all(bind=engine)
+
+class Password(BaseModel):
+    id: int
+    name: str
+    password: str
 
 
 @app.route("/")
@@ -17,11 +26,9 @@ def add_pwd_form():
 
 @app.route("/add_pwd", methods=["POST"])
 def add_pwd():
-    soft = request.form["soft"]
+    user = request.form["soft"]
     pwd = request.form["pwd"]
-    content = load()
-    content[soft] = pwd
-    save(content)
+    savenewaccount(user, pwd)
     return redirect("/", code=302)
 
 
@@ -29,25 +36,20 @@ def add_pwd():
 def get_pwd():
     soft = request.args.get('soft')
     try:
-        return render_template('index.html', pwd=load()[soft])
+        return render_template('index.html', pwd=load())
     except:
         return render_template("index.html", pwd="not found")
-
-
-
-
 
 def load():
     key = load_key()
     try:
-        with open("db.json", "r") as file:
-            content_crypts = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
-
+        db = SessionLocal()
+        items = [i for i in db.query(models.PasswordDB).all()]
+    finally:
+        db.close()
     return {
-        service: decrypt_password(content_crypt, key)
-        for service, content_crypt in content_crypts.items()
+        item.name: decrypt_password(item.password, key)
+        for item in items
     }
 
 
@@ -61,14 +63,20 @@ def decrypt_password(encrypted_password, key):
     return cipher_suite.decrypt(encrypted_password).decode()
 
 
-def save(content: dict):
-    key = load_key()
-    safe_dict = {}
-    for service, pwd in content.items():
-        safe_dict[service] = encrypt_password(pwd, key).decode()
-
-    with open("db.json", "w") as file:
-        json.dump(safe_dict, file, indent=2)
+def savenewaccount(service: str, password: str):
+    try:
+        db = SessionLocal()
+        if len([i for i in db.query(models.PasswordDB).all()]) == 0:
+            id = 1
+        else:
+            id = db.query(models.PasswordDB).order_by(models.PasswordDB.id.desc()).first().id + 1
+        item = models.PasswordDB(id=id, name=service, password=password)
+        key = load_key()
+        item.password = encrypt_password(item.password, key).decode()
+        db.add(item)
+        db.commit()
+    finally:
+        db.close()
 
 
 def load_key():
@@ -81,21 +89,5 @@ def load_key():
         return key
 
 
-def main():
-    quit = False
-    while not quit:
-        choix = input(
-            "1: ajouter un mot de passe\n2: aficher un mot de passe\n3: aficher tous les mot de passe\n4: quit\n>>> ")
-        if choix == "1":
-            add_pwd()
-        elif choix == "2":
-            get_pwd()
-        elif choix == "3":
-            get_all_pwd()
-        elif choix == "4":
-            quit = True
-
-
 if __name__ == "__main__":
     app.run(debug=True)
-    #main()
