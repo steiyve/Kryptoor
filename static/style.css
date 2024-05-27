@@ -1,0 +1,12 @@
+#input_form{
+    align-content: center;
+    border: double;
+    box-shadow: 5px 5px 10px 1px #000000;
+    border-radius: 20px;
+    width: 350px;
+    height: 120px;
+    font-size: 20pt;
+    display: flex;
+
+}
+

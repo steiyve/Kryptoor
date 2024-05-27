@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Kryptoor</title>
-    <link rel="stylesheet" href="mystyle.css">
-    <h1>welcome in Kryptoor.</h1>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
+
 </head>
 <body>
-    <nav>
-        <a href="/add_pwd_form">add password</a>
-        <br>
-    </nav>
-    <div id = "input_form">
-        <form action="/get_pwd">
-            <label for="soft">enter the software:</label>
-            <input type="text" id="soft" name="soft"><br>
-            <input type="submit" value="Submit">
-        </form>
-        <samp>
-            {{ pwd }}
-        </samp>
-    </div>
+    <main>
+        <h1>welcome in Kryptoor.</h1>
+        <nav>
+            <a href="/add_pwd_form">add password</a>
+            <br>
+        </nav>
+        <div id = "input_form">
+            <form action="/get_pwd">
+                <label for="soft">enter the software:</label><br>
+                <input type="text" id="soft" name="soft"><br>
+                <input type="submit" value="Submit">
+            </form>
+            <samp>
+                {{ pwd }}
+            </samp>
+        </div>
+    </main>
 </body>
 </html>

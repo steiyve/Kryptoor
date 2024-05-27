@@ -15,17 +15,29 @@ class Password(BaseModel):
 
 
 @app.route("/")
-def home():
+def home() -> str:
+    """
+    load home page
+    :return:
+    """
     return render_template('index.html', pwd="not found")
 
 
 @app.route("/add_pwd_form")
-def add_pwd_form():
+def add_pwd_form() -> str:
+    """
+    load page to add password
+    :return:
+    """
     return render_template('add.html')
 
 
 @app.route("/add_pwd", methods=["POST"])
 def add_pwd():
+    """
+    get the form and save to the db
+    :return:
+    """
     user = request.form["soft"]
     pwd = request.form["pwd"]
     savenewaccount(user, pwd)
@@ -33,44 +45,68 @@ def add_pwd():
 
 
 @app.route("/get_pwd", methods=["GET"])
-def get_pwd():
+def get_pwd() -> str:
+    """
+    get a password
+    :return:
+    """
     soft = request.args.get('soft')
     try:
-        return render_template('index.html', pwd=load())
+        return render_template('index.html', pwd=load(soft))
     except:
         return render_template("index.html", pwd="not found")
 
-def load():
+def load(soft: str) -> str:
+    """
+    load a password based on the service
+    :param soft: software associer au password
+    :return:
+    """
     key = load_key()
     try:
         db = SessionLocal()
-        items = [i for i in db.query(models.PasswordDB).all()]
+        return decrypt_password(db.query(models.PasswordDB).where(models.PasswordDB.soft == soft).first().password, key)
     finally:
         db.close()
-    return {
-        item.name: decrypt_password(item.password, key)
-        for item in items
-    }
 
 
-def encrypt_password(password, key):
+
+def encrypt_password(password: str, key: bytes) -> bytes:
+    """
+    Encrypts the given password
+    :param password: given password
+    :param key: clef dencryption
+    :return: mot de passe encrypter
+    """
     cipher_suite = Fernet(key)
     return cipher_suite.encrypt(password.encode())
 
 
-def decrypt_password(encrypted_password, key):
+def decrypt_password(encrypted_password: str, key: bytes) -> str:
+    """
+    Decrypts the password from the db
+    :param encrypted_password: le mot de passe encrypter
+    :param key: la clef d'encryption
+    :return: le mot de passe decrypter
+    """
     cipher_suite = Fernet(key)
     return cipher_suite.decrypt(encrypted_password).decode()
 
 
-def savenewaccount(service: str, password: str):
+def savenewaccount(soft: str, password: str) -> None:
+    """
+    add a new password to the database
+    :param soft: service utiliser
+    :param password: le mot de passe
+    :return: rien
+    """
     try:
         db = SessionLocal()
         if len([i for i in db.query(models.PasswordDB).all()]) == 0:
             id = 1
         else:
             id = db.query(models.PasswordDB).order_by(models.PasswordDB.id.desc()).first().id + 1
-        item = models.PasswordDB(id=id, name=service, password=password)
+        item = models.PasswordDB(id=id, name=soft, password=password)
         key = load_key()
         item.password = encrypt_password(item.password, key).decode()
         db.add(item)
@@ -79,7 +115,11 @@ def savenewaccount(service: str, password: str):
         db.close()
 
 
-def load_key():
+def load_key() -> bytes:
+    """
+    creer ou load une clef d'encryption
+    :return: la clef d'encryption
+    """
     try:
         return open("secret.key", "rb").read()
     except:
