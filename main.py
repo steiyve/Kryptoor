@@ -54,7 +54,7 @@ def get_pwd() -> str:
     try:
         return render_template('index.html', pwd=load(soft))
     except:
-        return render_template("index.html", pwd="not found")
+        return render_template("index.html", pwd="")
 
 def load(soft: str) -> str:
     """
@@ -102,11 +102,14 @@ def savenewaccount(soft: str, password: str) -> None:
     """
     try:
         db = SessionLocal()
+        print(len(db.query(models.PasswordDB).where(models.PasswordDB.soft==soft).all()))
+        if len(db.query(models.PasswordDB).where(models.PasswordDB.soft==soft).all()) !=0:
+            return changepassword(soft, password)
         if len([i for i in db.query(models.PasswordDB).all()]) == 0:
             id = 1
         else:
             id = db.query(models.PasswordDB).order_by(models.PasswordDB.id.desc()).first().id + 1
-        item = models.PasswordDB(id=id, name=soft, password=password)
+        item = models.PasswordDB(id=id, soft=soft, password=password)
         key = load_key()
         item.password = encrypt_password(item.password, key).decode()
         db.add(item)
@@ -114,6 +117,15 @@ def savenewaccount(soft: str, password: str) -> None:
     finally:
         db.close()
 
+def changepassword(soft: str, password: str) -> None:
+    key = load_key()
+    try:
+        db = SessionLocal()
+        item = db.query(models.PasswordDB).where(models.PasswordDB.soft == soft).first()
+        item.password = encrypt_password(password, key).decode()
+        db.commit()
+    finally:
+        db.close()
 
 def load_key() -> bytes:
     """

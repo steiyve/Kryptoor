@@ -1,12 +1,33 @@
+header{
+    margin: auto;
+    text-align: center;
+    color: whitesmoke;
+    padding: 10px;
+}
+a{
+    border: 1px solid rgb(0,0,0);
+    background-color: #92c1d0;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+body{
+    background-image: linear-gradient(to right, #92c1d0, #7d945d);
+}
+
 #input_form{
+    background-color: white;
     align-content: center;
-    border: double;
     box-shadow: 5px 5px 10px 1px #000000;
     border-radius: 20px;
-    width: 350px;
+    width: 400px;
     height: 120px;
     font-size: 20pt;
-    display: flex;
-
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    text-align: center;
+    margin: auto;
 }
+
+
 
